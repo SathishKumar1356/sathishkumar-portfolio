@@ -1161,3 +1161,121 @@ h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
 .contact-backdrop { z-index: 30; }
 @media (max-width: 1000px) { .filter-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .filter-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } .filter-chip { font-size: 10px; min-height: 44px; } .issuer-logo { width: 112px; min-width: 112px; padding-left: 0; } .contact-detail { grid-template-columns: 36px minmax(0,1fr) 14px; gap: 9px; padding: 10px; } .contact-detail-icon { width: 34px; height: 34px; } .contact-detail strong { font-size: 10px; } }
+
+
+/* =====================================================================
+   3D avatar guide (react-three-fiber) — stage, caption, controls, dock
+   ===================================================================== */
+.avatar-slot { width: min(100%, 540px); margin: 22px auto 0; }
+.avatar-slot .welcome-avatar { margin: 0; width: 100%; }
+.welcome-avatar.guide-card {
+  grid-template-columns: 200px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 16px;
+  padding: 14px 16px 14px 14px;
+}
+.guide-stage {
+  position: relative;
+  height: 285px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(151, 132, 255, .22);
+  background:
+    radial-gradient(ellipse at 50% 38%, rgba(121, 90, 255, .26), transparent 62%),
+    linear-gradient(180deg, rgba(14, 17, 46, .9), rgba(7, 9, 26, .95));
+}
+.guide-stage canvas { display: block; width: 100% !important; height: 100% !important; touch-action: pan-y; }
+.guide-stage-glow { position: absolute; inset: auto 0 0 0; height: 38%; z-index: 1; pointer-events: none; background: linear-gradient(0deg, rgba(7, 9, 26, .92), transparent); }
+.stage-fallback { width: 100%; height: 100%; object-fit: contain; object-position: center bottom; }
+.guide-stage .avatar-status-dot { z-index: 2; right: 10px; bottom: 10px; top: auto; }
+.avatar-status-dot.live { animation: guide-live 1.1s ease-in-out infinite; }
+@keyframes guide-live { 0%,100% { box-shadow: 0 0 6px rgba(112,231,183,.5); } 50% { box-shadow: 0 0 16px rgba(112,231,183,1); } }
+
+.guide-body { display: flex; flex-direction: column; min-width: 0; }
+.guide-caption {
+  margin: 12px 0 10px;
+  min-height: 5.6em;
+  color: #cdd5f3;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.guide-progress { display: flex; align-items: center; gap: 6px; margin: 0 0 12px; flex-wrap: wrap; }
+.guide-step { width: 22px; height: 6px; padding: 0; border: 0; border-radius: 9px; cursor: pointer; background: rgba(151, 164, 255, .22); transition: background .25s, transform .2s; }
+.guide-step:hover { transform: scaleY(1.6); background: rgba(190, 170, 255, .6); }
+.guide-step.past { background: rgba(120, 200, 255, .65); }
+.guide-step.current { background: linear-gradient(90deg, #79c8ff, #bd96ff); box-shadow: 0 0 10px rgba(150, 130, 255, .6); }
+.guide-step-label { margin-left: 4px; color: #9da9cf; font-size: 10px; letter-spacing: .6px; text-transform: uppercase; }
+.guide-bar { height: 4px; margin: 0 0 12px; border-radius: 9px; background: rgba(151, 164, 255, .18); overflow: hidden; }
+.guide-bar span { display: block; height: 100%; border-radius: 9px; background: linear-gradient(90deg, #79c8ff, #bd96ff); transition: width .4s; }
+
+.guide-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+.guide-controls .guide-primary { margin-right: 4px; }
+.guide-icon-btn {
+  display: inline-grid; place-items: center; min-width: 34px; height: 34px; padding: 0 8px;
+  border: 1px solid rgba(155, 133, 255, .35); border-radius: 10px; cursor: pointer;
+  color: #e6e2ff; background: rgba(112, 76, 255, .12); font: inherit;
+  transition: transform .2s, border-color .2s, background .2s;
+}
+.guide-icon-btn:hover:not(:disabled) { transform: translateY(-2px); border-color: rgba(190, 170, 255, .9); background: rgba(112, 76, 255, .26); }
+.guide-icon-btn:focus-visible { outline: 2px solid #b7a0ff; outline-offset: 2px; }
+.guide-icon-btn:disabled { opacity: .45; cursor: not-allowed; }
+.guide-icon-btn.on { border-color: rgba(120, 200, 255, .8); color: #bfe8ff; background: rgba(76, 150, 255, .2); }
+.guide-icon-main { background: linear-gradient(110deg, rgba(112, 76, 255, .5), rgba(64, 143, 255, .3)); }
+.guide-speed { font-size: 11px; font-weight: 700; letter-spacing: .2px; }
+.welcome-avatar.guide-card .avatar-play-icon { background: #a48aff; }
+.guide-body .avatar-audio-note { margin-top: 9px; }
+
+/* Floating mini-guide: follows the visitor while the tour is running */
+.guide-dock {
+  position: fixed; left: 16px; bottom: 16px; z-index: 60;
+  display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 10px;
+  width: min(380px, calc(100vw - 32px)); padding: 10px 12px 10px 10px;
+  border: 1px solid rgba(165, 139, 255, .6); border-radius: 18px;
+  background: linear-gradient(125deg, rgba(18, 22, 55, .96), rgba(8, 11, 30, .95));
+  box-shadow: 0 18px 55px rgba(4, 5, 22, .55), 0 0 30px rgba(112, 76, 255, .18);
+  backdrop-filter: blur(16px);
+  animation: avatar-arrive .45s cubic-bezier(.2,.75,.2,1) both;
+}
+.guide-dock-stage { height: 150px; border-radius: 12px; overflow: hidden; background: radial-gradient(ellipse at 50% 40%, rgba(121, 90, 255, .28), transparent 65%), rgba(7, 9, 26, .8); }
+.guide-dock-stage canvas { display: block; width: 100% !important; height: 100% !important; }
+.guide-dock-body { min-width: 0; display: flex; flex-direction: column; }
+.guide-dock-head { display: flex; align-items: center; gap: 8px; }
+.guide-dock-head strong { color: #f1f2ff; font-size: 13px; }
+.guide-dock-head span { color: #70e7b7; font-size: 10px; text-transform: uppercase; letter-spacing: .8px; }
+.guide-dock-close { margin-left: auto; display: grid; place-items: center; width: 26px; height: 26px; border: 0; border-radius: 8px; cursor: pointer; color: #b9c3e1; background: rgba(255,255,255,.06); }
+.guide-dock-close:hover { color: #fff; background: rgba(255,255,255,.14); }
+.guide-dock .guide-caption { margin: 6px 0 8px; min-height: 0; max-height: 5.2em; overflow: hidden; font-size: 11px; line-height: 1.55; }
+.guide-controls.compact { gap: 5px; }
+.guide-controls.compact .guide-icon-btn { min-width: 30px; height: 30px; padding: 0 6px; border-radius: 9px; }
+.guide-controls.compact .avatar-play-button { padding: 7px 10px; font-size: 10px; }
+
+/* "Ask Sathish to explain" button in the project modal */
+.explain-button {
+  display: inline-flex; align-items: center; gap: 8px; margin: 4px 0 6px; padding: 10px 14px;
+  border: 1px solid rgba(155, 133, 255, .55); border-radius: 12px; cursor: pointer;
+  color: #f4f2ff; font: inherit; font-size: 12px; font-weight: 650;
+  background: linear-gradient(110deg, rgba(112, 76, 255, .3), rgba(64, 143, 255, .15));
+  transition: transform .2s, border-color .2s, box-shadow .2s;
+}
+.explain-button:hover { transform: translateY(-2px); border-color: rgba(190, 170, 255, .95); box-shadow: 0 8px 26px rgba(110, 83, 255, .22); }
+.explain-button:focus-visible { outline: 2px solid #b7a0ff; outline-offset: 3px; }
+
+/* project card being discussed by the avatar */
+.project-card.tour-focus {
+  border-color: rgba(var(--accent-rgb), .95);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), .35), 0 0 38px rgba(var(--accent-rgb), .3);
+  animation: tour-focus-pulse 1.6s ease-in-out infinite;
+}
+@keyframes tour-focus-pulse { 0%,100% { transform: translateY(-3px); } 50% { transform: translateY(-6px); } }
+
+@media (max-width: 700px) {
+  .welcome-avatar.guide-card { grid-template-columns: 1fr; gap: 12px; padding: 12px; }
+  .guide-stage { height: 240px; }
+  .guide-caption { min-height: 0; font-size: 11.5px; margin: 10px 0 8px; }
+  .guide-dock { left: 8px; right: 8px; bottom: 8px; width: auto; grid-template-columns: 84px minmax(0, 1fr); }
+  .guide-dock-stage { height: 124px; }
+  .guide-dock .guide-caption { max-height: 4.6em; font-size: 10.5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .project-card.tour-focus, .avatar-status-dot.live, .guide-dock { animation: none !important; }
+}
