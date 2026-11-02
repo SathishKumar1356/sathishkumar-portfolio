@@ -29,6 +29,7 @@ import {
   Zap,
 } from "lucide-react";
 import "./styles.css";
+import AvatarGuide from "./AvatarGuide.jsx";
 
 const projects = [
   {
@@ -414,75 +415,21 @@ const certifications = [
   { name: "Redhat Linux System Administration", issuer: "Red Hat", logo: "redhat" },
 ];
 
-const GREETING_TEXT = "Hi there, and welcome to my portfolio! I'm Sathish Kumar, an OutSystems Technical Lead with over six years of experience building enterprise web and mobile applications, delivering OutSystems Developer Cloud solutions, integrating external platforms, and exploring AI-powered products. Feel free to explore my projects, skills, and certifications. Thanks for visiting!";
-
-function WelcomeAvatar() {
-  const [speaking, setSpeaking] = useState(false);
-  const [greetingPlayed, setGreetingPlayed] = useState(false);
-  const [voiceAvailable, setVoiceAvailable] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    setVoiceAvailable(true);
-    // Browsers commonly block speech until a user gesture. Try once on load;
-    // the visible button remains available if autoplay is blocked.
-    const timer = window.setTimeout(() => {
-      try {
-        const utterance = new SpeechSynthesisUtterance(GREETING_TEXT);
-        utterance.rate = 0.94;
-        utterance.pitch = 1.03;
-        utterance.onstart = () => { setSpeaking(true); setGreetingPlayed(true); };
-        utterance.onend = () => setSpeaking(false);
-        utterance.onerror = () => setSpeaking(false);
-        window.speechSynthesis.speak(utterance);
-      } catch (_) {
-        setSpeaking(false);
-      }
-    }, 1200);
-    return () => window.clearTimeout(timer);
-  }, []);
-
-  function toggleGreeting() {
-    if (!("speechSynthesis" in window)) return;
-    if (speaking) {
-      window.speechSynthesis.cancel();
-      setSpeaking(false);
-      return;
-    }
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(GREETING_TEXT);
-    utterance.rate = 0.94;
-    utterance.pitch = 1.03;
-    utterance.onstart = () => { setSpeaking(true); setGreetingPlayed(true); };
-    utterance.onend = () => setSpeaking(false);
-    utterance.onerror = () => setSpeaking(false);
-    window.speechSynthesis.speak(utterance);
-  }
-
+// Shared category matching (used by the project filter tabs and by the avatar's guided tour).
+function projectMatchesCategory(project, category) {
+  const group = categoryGroups[category] || [];
+  const searchable = [project.name, project.description, project.tagline, ...project.tech].join(" ");
   return (
-    <aside className={`welcome-avatar ${speaking ? "is-speaking" : ""}`} aria-label="AI welcome introduction">
-      <div className="avatar-orbit avatar-orbit-a" aria-hidden="true" />
-      <div className="avatar-orbit avatar-orbit-b" aria-hidden="true" />
-      <div className="avatar-portrait-wrap">
-        <span className="avatar-halo" aria-hidden="true" />
-        <img className="avatar-portrait" src="/ai-avatar.webp" alt="Animated 3D AI portfolio guide" />
-        <span className="avatar-status-dot" aria-label={speaking ? "Speaking" : "Ready"} />
-      </div>
-      <div className="avatar-greeting">
-        <div className="avatar-greeting-top">
-          <span className="avatar-wave-icon" aria-hidden="true"><span /><span /><span /><span /><span /></span>
-          <div><strong>Meet Sathish</strong><small>{speaking ? "Introducing myself…" : "Your AI portfolio guide"}</small></div>
-          <span className="avatar-ai-pill"><Sparkles size={12} /> AI</span>
-        </div>
-        <p>Hi there! Welcome to my portfolio. I'm Sathish Kumar, an OutSystems Technical Lead with 6+ years of experience in enterprise apps, ODC, integrations and AI-powered solutions.</p>
-        <button className="avatar-play-button" type="button" onClick={toggleGreeting} disabled={!voiceAvailable}>
-          {speaking ? <><span className="avatar-pause-icon">Ⅱ</span> Stop introduction</> : <><span className="avatar-play-icon">▶</span> {greetingPlayed ? "Play introduction again" : "Listen to my introduction"}</>}
-        </button>
-        <small className="avatar-audio-note">{voiceAvailable ? "Audio may require a click if your browser blocks autoplay." : "Audio playback isn't supported by this browser."}</small>
-      </div>
-    </aside>
+    group.includes(project.category) ||
+    (category === "Security & Performance" &&
+      /security|encrypt|performance|authority|database|devops|access management/i.test(searchable))
   );
 }
+
+const tourGroups = categories.map((category) => ({
+  category,
+  projects: projects.filter((project) => projectMatchesCategory(project, category)),
+}));
 
 function App() {
   const [activeCategory, setActiveCategory] = useState("Enterprise Solutions");
@@ -491,12 +438,27 @@ function App() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [showContact, setShowContact] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [tourFocus, setTourFocus] = useState(null);
+
+  // The 3D avatar asks the page to switch tabs / highlight cards while it narrates.
+  function handleTourCategory(category) {
+    setSearch("");
+    setTabDirection(categories.indexOf(category) >= categories.indexOf(activeCategory) ? "right" : "left");
+    setActiveCategory(category);
+    document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
+  }
+
+  function handleTourProject(name) {
+    setTourFocus(name);
+    if (!name) return;
+    window.setTimeout(() => {
+      const el = Array.from(document.querySelectorAll("[data-project]")).find((node) => node.dataset.project === name);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 450);
+  }
 
   const filteredProjects = projects.filter((project) => {
-    const group = categoryGroups[activeCategory] || [];
-    const searchableProject = [project.name, project.description, project.tagline, ...project.tech].join(" ");
-    const matchesCategory = group.includes(project.category) ||
-      (activeCategory === "Security & Performance" && /security|encrypt|performance|authority|database|devops|access management/i.test(searchableProject));
+    const matchesCategory = projectMatchesCategory(project, activeCategory);
     const text = [
       project.name,
       project.category,
@@ -636,7 +598,14 @@ function App() {
             <span className="planet-tag planet-tag-right"><BrainCircuit size={15} /> AI & ODC</span>
             <span className="planet-tag planet-tag-bottom"><Database size={15} /> Integrations · APIs</span>
           </div>
-          <WelcomeAvatar />
+          <AvatarGuide
+            groups={tourGroups}
+            projects={projects}
+            certifications={certifications}
+            overlayOpen={Boolean(selectedProject || showContact)}
+            onShowCategory={handleTourCategory}
+            onFocusProject={handleTourProject}
+          />
           <div className="mini-profile real-profile-footer">
             <img src="/sathish-profile.png" alt="Sathish Kumar" />
             <div><strong>Sathish Kumar</strong><span>OutSystems Technical Lead</span></div>
@@ -708,7 +677,8 @@ function App() {
             return (
               <button
                 type="button"
-                className={`project-card ${project.color}`}
+                className={`project-card ${project.color} ${tourFocus === project.name ? "tour-focus" : ""}`}
+                data-project={project.name}
                 key={project.name}
                 onClick={() => setSelectedProject(project)}
                 aria-label={`View ${project.name} project details`}
@@ -867,6 +837,15 @@ function App() {
             <h2 id="project-modal-title">{selectedProject.name}</h2>
             <p className="modal-tagline">{selectedProject.tagline}</p>
             <p className="modal-description">{selectedProject.description}</p>
+            <button
+              type="button"
+              className="explain-button"
+              onClick={() =>
+                window.dispatchEvent(new CustomEvent("avatar:explain", { detail: { name: selectedProject.name } }))
+              }
+            >
+              <Sparkles size={15} /> Ask Sathish to explain this project
+            </button>
             <h3>Key contributions and focus areas</h3>
             <ul className="contribution-list">
               {selectedProject.work.map((item) => (
