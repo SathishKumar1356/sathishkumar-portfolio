@@ -1299,8 +1299,8 @@ h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
    v5: full-body avatar overlay — walks into the hero, then docks on scroll
    ===================================================================== */
 .avatar-overlay {
-  --p: 0; --ds: .5;
-  --sw: min(46vw, 640px); --sh: min(94vh, 900px);
+  --p: 0; --ds: .62;
+  --sw: min(34vw, 470px); --sh: min(72vh, 660px);
   --k: calc(1 - (1 - var(--ds)) * var(--p));
   position: fixed; inset: 0; z-index: 55; pointer-events: none;
 }
