@@ -50,23 +50,25 @@ function aimBone(bone, child, dir) {
 // Target directions [upper arm, forearm] in the avatar's own space (+x = its left, +y up, +z toward the viewer).
 function armTargets(kind, side, t, pulse, speaking, waving) {
   const right = side > 0; // the arm on the viewer's right
-  if (waving && right) return [[side * 0.85, 0.5, 0.1], [side * (0.35 + 0.55 * Math.sin(t * 9)), 0.95, 0.1]];
-  if (!speaking) return [[side * 0.16 + Math.sin(t * 1.1 + side) * 0.01, -1, 0.06], [side * 0.08, -1, 0.3]];
+  if (waving && right) return [[side * 0.7, 0.6, 0.1], [side * (0.2 + 0.45 * Math.sin(t * 9)), 0.95, 0.1]];
+  if (!speaking) return [[side * 0.14 + Math.sin(t * 1.1 + side) * 0.008, -1, 0.05], [side * 0.05, -1, 0.25]];
   const both = kind === "both";
   const active = both || (kind === "right" && right) || (kind === "left" && !right);
   if (active && both) {
+    // hands held in front of the chest, gently moving as he talks
     return [
-      [side * (0.32 + Math.sin(t * 1.9 + side) * 0.06), -0.9, 0.38],
-      [side * (0.12 + Math.sin(t * 2.2) * 0.06), 0.28 + Math.sin(t * 3.1 + side * 1.4) * 0.12 + pulse * 0.25, 0.95],
+      [side * (0.16 + Math.sin(t * 1.9 + side) * 0.03), -0.95, 0.3],
+      [side * (-0.04 + Math.sin(t * 2.2) * 0.04), 0.18 + Math.sin(t * 3.1 + side * 1.4) * 0.08 + pulse * 0.16, 0.95],
     ];
   }
   if (active) {
+    // one open hand presenting to the side, but not too wide
     return [
-      [side * (0.75 + Math.sin(t * 1.7) * 0.08), -0.6, 0.25],
-      [side * 0.85, 0.12 + Math.sin(t * 2.7) * 0.1 + pulse * 0.2, 0.45],
+      [side * (0.42 + Math.sin(t * 1.7) * 0.05), -0.82, 0.22],
+      [side * 0.4, 0.1 + Math.sin(t * 2.7) * 0.07 + pulse * 0.12, 0.82],
     ];
   }
-  return [[side * 0.2, -1, 0.1], [side * 0.1, -0.75, 0.5]];
+  return [[side * 0.14, -1, 0.1], [side * 0.04, -0.8, 0.45]];
 }
 
 // letter -> [Ready-Player-Me viseme, mouth-open amount, lip-width factor]
@@ -125,9 +127,9 @@ function Model({ ctrl, url, reduced }) {
     });
     const top = box.max.y;
     const H = Math.max(top - box.min.y, 0.001);
-    const visible = fullBody ? 0.7 * H : 1.0 * H; // full body: show head to hips
+    const visible = fullBody ? 0.56 * H : 0.9 * H; // full body: show head to belt
     const s = 2.3 / visible;
-    return { s, x: -hips.x * s, y: 1.12 - (top + 0.05 * H) * s, z: -hips.z * s };
+    return { s, x: -hips.x * s, y: 1.12 - (top + 0.04 * H) * s, z: -hips.z * s };
   }, [model]);
 
   // ---- discover morph targets, bones and animation clips ----
